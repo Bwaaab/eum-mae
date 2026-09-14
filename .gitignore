@@ -1,0 +1,75 @@
+# ==========================================
+# Python & Pygame Byte-compiled / optimized / DLL files
+# ==========================================
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# PyInstaller / Executable build outputs (실행파일 빌드 시 생성)
+*.manifest
+*.spec
+
+# Pygame log / temporary files
+.pygame/
+
+# ==========================================
+# Virtual Environments (가상환경)
+# ==========================================
+venv/
+.venv/
+env/
+.env/
+ENV/
+env.bak/
+venv.bak/
+
+# ==========================================
+# IDE & Code Editors (에디터 및 개발도구 설정)
+# ==========================================
+# VS Code
+.vscode/
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+*.code-workspace
+
+# PyCharm / JetBrains
+.idea/
+
+# Developer Tools & OS
+.DS_Store
+.DS_Store?
+ehthumbs.db
+Thumbs.db
+*.bak
+*.swp
+*.tmp
+
+# ==========================================
+# User Specific Settings / Secret Keys
+# ==========================================
+*.log
+.env
