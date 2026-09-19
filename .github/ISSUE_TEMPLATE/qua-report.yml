@@ -1,0 +1,16 @@
+name: 질문
+description: 버그나 기능이 아닌 질문을 올릴 때 사용합니다.
+title: "[질문]: "
+labels: ["질문"]
+body:
+  - type: textarea
+    id: details
+    attributes:
+      label: 내용
+      description: 맥락과 질문을 적습니다.
+      placeholder: |
+        짧은 요약:
+
+        질문:
+    validations:
+      required: true
