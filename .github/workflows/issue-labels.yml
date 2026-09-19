@@ -1,0 +1,54 @@
+# 이슈 제목 접두사에 맞춰 라벨을 만들고 붙인다.
+# 템플릿의 labels 필드가, 저장소에 라벨이 없을 때 빠지는 경우를 보완한다.
+
+name: Issue labels
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  issues: write
+
+jobs:
+  label:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Apply label from title
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const presets = {
+              '[버그]': { name: '버그', color: 'd73a4a', description: '오류 보고' },
+              '[기능]': { name: '기능', color: '0e8a16', description: '기능 제안' },
+              '[질문]': { name: '질문', color: 'd876e3', description: '질문' },
+            }
+
+            const title = context.payload.issue.title || ''
+            const preset = Object.entries(presets).find(([prefix]) =>
+              title.startsWith(prefix)
+            )
+            if (!preset) return
+
+            const { name, color, description } = preset[1]
+            const { owner, repo } = context.repo
+
+            try {
+              await github.rest.issues.getLabel({ owner, repo, name })
+            } catch (error) {
+              if (error.status !== 404) throw error
+              await github.rest.issues.createLabel({
+                owner,
+                repo,
+                name,
+                color,
+                description,
+              })
+            }
+
+            await github.rest.issues.addLabels({
+              owner,
+              repo,
+              issue_number: context.issue.number,
+              labels: [name],
+            })

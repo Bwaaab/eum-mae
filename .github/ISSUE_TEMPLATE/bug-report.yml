@@ -1,7 +1,7 @@
 name: 버그
 description: 오류가 났을 때 사용합니다.
 title: "[버그]: "
-labels: ["bug"]
+labels: ["버그"]
 type: bug
 body:
   - type: dropdown
