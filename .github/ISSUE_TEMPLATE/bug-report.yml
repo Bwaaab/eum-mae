@@ -1,0 +1,44 @@
+name: 버그
+description: 오류가 났을 때 사용합니다.
+title: "[버그]: "
+labels: ["bug"]
+type: bug
+body:
+  - type: dropdown
+    id: os
+    attributes:
+      label: 운영체제
+      options:
+        - Windows
+        - macOS
+        - Linux
+        - 기타
+    validations:
+      required: true
+
+  - type: input
+    id: python_version
+    attributes:
+      label: Python 버전
+      description: 버그가 났을 때 사용한 버전입니다 (`python --version`).
+      placeholder: 3.12.4
+    validations:
+      required: false
+
+  - type: textarea
+    id: details
+    attributes:
+      label: 내용
+      description: 요약, 재현 방법, 기대 동작과 실제 동작을 적습니다.
+      placeholder: |
+        짧은 요약:
+
+        재현 방법:
+        1.
+        2.
+        3.
+
+        기대 동작:
+        실제 동작:
+    validations:
+      required: true
