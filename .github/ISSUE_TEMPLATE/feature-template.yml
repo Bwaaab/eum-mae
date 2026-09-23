@@ -1,0 +1,32 @@
+name: 기능
+description: 새 기능이 필요할 때 사용합니다.
+title: "[기능]: "
+labels: ["기능"]
+type: feature
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: 문제 또는 사용 맥락
+      description: 무엇을 하려는지 짧게 적습니다.
+      placeholder: …할 때 필요합니다.
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: 제안
+      description: 원하는 기능을 설명합니다.
+      placeholder: …하면 좋겠습니다.
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternative
+    attributes:
+      label: 대안
+      description: 다른 방법이 있으면 적습니다. 없으면 비워 둡니다.
+      placeholder: 없으면 비워 둡니다.
+    validations:
+      required: false
