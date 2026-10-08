@@ -55,13 +55,15 @@ GitHub Flow로 운영한다. `main`은 항상 실행 가능한 상태를 유지�
 
 ## 4. 이슈
 
-코딩과 문서 작업은 시작 전에 이슈를 등록한다. 빈 이슈는 열지 않는다. 이슈에는 아래 라벨을 붙인다.
+코딩과 문서 작업은 시작 전에 이슈를 등록한다. 빈 이슈는 열지 않는다. 템플릿은 `.github/ISSUE_TEMPLATE/`에 있고, 제목 접두사와 같은 라벨이 붙는다.
 
-- `enhancement`: 새 기능 개발 및 UI/UX 개선
-- `bug`: 프로그램 실행 오류 및 예외 상황 수정
-- `documentation`: 회의록, 안내서, README 등 문서화 작업
-- `question`: 기술적 문제 및 팀원·교수님 질의
-- `good first issue`: 11주차 타 팀 기여용. 타 팀이 풀 수 있는 이슈를 2개 이상 남긴다
+| 파일 | 제목 접두사 | 용도 |
+|---|---|---|
+| `enhancement.yml` | `[enhancement]:` | 새 기능 개발 및 UI/UX 개선 |
+| `bug.yml` | `[bug]:` | 프로그램 실행 오류 및 예외 상황 수정 |
+| `documentation.yml` | `[documentation]:` | 회의록, 안내서, README 등 문서화 작업 |
+| `question.yml` | `[question]:` | 기술적 문제 및 팀원·교수님 질의 |
+| `good-first-issue.yml` | `[good first issue]:` | 11주차 타 팀 기여용. 타 팀이 풀 수 있는 이슈를 2개 이상 남긴다 |
 
 `question`은 PR을 열지 않고 이슈에서 답한다.
 

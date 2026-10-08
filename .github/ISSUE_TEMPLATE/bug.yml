@@ -1,6 +1,6 @@
-name: 버그
-description: 오류가 났을 때 사용합니다.
-title: "[버그]: "
+name: bug
+description: 프로그램 실행 오류 및 예외 상황을 보고할 때 사용합니다.
+title: "[bug]: "
 labels: ["bug"]
 type: bug
 body:
