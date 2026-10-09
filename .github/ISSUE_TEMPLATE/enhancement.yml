@@ -1,7 +1,7 @@
-name: 기능
-description: 새 기능이 필요할 때 사용합니다.
-title: "[기능]: "
-labels: ["기능"]
+name: enhancement
+description: 새 기능 개발 및 UI/UX 개선을 제안할 때 사용합니다.
+title: "[enhancement]: "
+labels: ["enhancement"]
 type: feature
 body:
   - type: textarea

@@ -1,7 +1,7 @@
-name: 질문
-description: 버그나 기능이 아닌 질문을 올릴 때 사용합니다.
-title: "[질문]: "
-labels: ["질문"]
+name: question
+description: 기술적 문제나 팀원·교수님 질의를 올릴 때 사용합니다.
+title: "[question]: "
+labels: ["question"]
 body:
   - type: textarea
     id: details

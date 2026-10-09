@@ -44,11 +44,13 @@
 
 | 파일 | 제목 접두사 | 용도 |
 |---|---|---|
-| `bug-report.yml` | `[버그]:` | 오류 보고. 운영체제, 재현 단계, 기대·실제 동작 |
-| `feature-template.yml` | `[기능]:` | 기능 제안. 문제 또는 사용 맥락, 제안, 대안 |
-| `qua-report.yml` | `[질문]:` | 버그·기능이 아닌 질문 |
+| `enhancement.yml` | `[enhancement]:` | 새 기능. 문제 또는 사용 맥락, 제안, 대안 |
+| `bug.yml` | `[bug]:` | 오류 보고. 운영체제, 재현 단계, 기대·실제 동작 |
+| `documentation.yml` | `[documentation]:` | 문서 작업. 대상 문서, 포함할 내용 |
+| `question.yml` | `[question]:` | 기술적 질의 |
+| `good-first-issue.yml` | `[good first issue]:` | 타 팀 기여용. 할 일, 시작 위치, 완료 기준 |
 
-버그 이슈의 재현 칸은 버그 수정 PR과, 기능 이슈의 맥락·제안 칸은 기능 PR과 대응한다.
+버그 이슈의 재현 칸은 버그 수정 PR과, enhancement 이슈의 맥락·제안 칸은 기능 PR과 대응한다.
 
 ### 풀 리퀘스트 템플릿
 
