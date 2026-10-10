@@ -7,7 +7,7 @@
 - [팀 약속](docs/team-agreement.md)
 - [CI 파이프라인](docs/ci-pipeline.md)
 - [코드 품질 유지](docs/maintaining_code_quality.md)
-- [라이선스](docs/license.md)
+- [라이선스](LICENSE)
 
 ---
 
@@ -137,7 +137,7 @@ CI가 실패하면 그 오류를 고친 뒤에 리뷰를 끝낸다. 검사 단�
 | `docs/ci-pipeline.md` | CI 파이프라인 |
 | `docs/maintaining_code_quality.md` | 코드 품질 유지 |
 | `docs/meetings/YYYY-MM-DD.md` | 주간 회의록 |
-| `docs/license.md` | 라이선스 안내 |
+| `LICENSE` | 라이선스 |
 
 라이선스는 MIT다. 행동 수칙은 `CODE_OF_CONDUCT.md`를 따른다.
 
