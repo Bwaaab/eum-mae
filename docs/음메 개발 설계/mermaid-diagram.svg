@@ -1,0 +1,69 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 851.9819999999999 270.1" width="851.9819999999999" height="270.1" style="--bg:#FFFFFF;--fg:#3B3B3B;--line:#3B3B3B;--accent:#005FB8;--muted:#3B3B3BCC;--surface:#F8F8F8;--border:#3B3B3B;background:var(--bg)">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap');
+  text { font-family: 'Inter', system-ui, sans-serif; }
+  svg {
+    /* Derived from --bg and --fg (overridable via --line, --accent, etc.) */
+    --_text:          var(--fg);
+    --_text-sec:      var(--muted, color-mix(in srgb, var(--fg) 60%, var(--bg)));
+    --_text-muted:    var(--muted, color-mix(in srgb, var(--fg) 40%, var(--bg)));
+    --_text-faint:    color-mix(in srgb, var(--fg) 25%, var(--bg));
+    --_line:          var(--line, color-mix(in srgb, var(--fg) 50%, var(--bg)));
+    --_arrow:         var(--accent, color-mix(in srgb, var(--fg) 85%, var(--bg)));
+    --_node-fill:     var(--surface, color-mix(in srgb, var(--fg) 3%, var(--bg)));
+    --_node-stroke:   var(--border, color-mix(in srgb, var(--fg) 20%, var(--bg)));
+    --_group-fill:    var(--bg);
+    --_group-hdr:     color-mix(in srgb, var(--fg) 5%, var(--bg));
+    --_inner-stroke:  color-mix(in srgb, var(--fg) 12%, var(--bg));
+    --_key-badge:     color-mix(in srgb, var(--fg) 10%, var(--bg));
+  }
+</style>
+<defs>
+  <marker id="arrowhead" markerWidth="8" markerHeight="5" refX="7" refY="2.5" orient="auto">
+    <polygon points="0 0, 8 2.5, 0 5" fill="var(--_arrow)" stroke="var(--_arrow)" stroke-width="0.75" stroke-linejoin="round" />
+  </marker>
+  <marker id="arrowhead-start" markerWidth="8" markerHeight="5" refX="1" refY="2.5" orient="auto-start-reverse">
+    <polygon points="8 0, 0 2.5, 8 5" fill="var(--_arrow)" stroke="var(--_arrow)" stroke-width="0.75" stroke-linejoin="round" />
+  </marker>
+</defs>
+<polyline class="edge" data-from="App" data-to="M1" data-style="solid" data-arrow-start="false" data-arrow-end="true" data-label="1. 목록 화면 출력 &amp; 선택 ID 수집" points="354.57059999999996,76.9 354.57059999999996,88.9 123.5895,88.9 123.5895,181.2" fill="none" stroke="var(--_line)" stroke-width="1" marker-end="url(#arrowhead)" />
+<polyline class="edge" data-from="App" data-to="M2" data-style="solid" data-arrow-start="false" data-arrow-end="true" data-label="2. 선택된 ID 중 무작위 1개 추첨" points="404.1601999999999,76.9 404.1601999999999,112.9 329.88349999999997,112.9 329.88349999999997,181.2" fill="none" stroke="var(--_line)" stroke-width="1" marker-end="url(#arrowhead)" />
+<polyline class="edge" data-from="App" data-to="M3" data-style="solid" data-arrow-start="false" data-arrow-end="true" data-label="3. 당첨 메뉴 기반 연출 100% 재생" points="453.74979999999994,76.9 453.74979999999994,112.9 528.0264999999999,112.9 528.0264999999999,181.2" fill="none" stroke="var(--_line)" stroke-width="1" marker-end="url(#arrowhead)" />
+<polyline class="edge" data-from="App" data-to="M4" data-style="solid" data-arrow-start="false" data-arrow-end="true" data-label="4. 최종 카드 출력 &amp; PNG 다운로드" points="503.33939999999996,76.9 503.33939999999996,88.9 721.7235,88.9 721.7235,181.2" fill="none" stroke="var(--_line)" stroke-width="1" marker-end="url(#arrowhead)" />
+<g class="edge-label" data-from="App" data-to="M1" data-label="1. 목록 화면 출력 &amp; 선택 ID 수집">
+  <rect x="38.5895" y="95.9" width="169.12" height="30.3" rx="2" ry="2" fill="var(--bg)" stroke="var(--_inner-stroke)" stroke-width="1" />
+  <text x="123.1495" y="111.05000000000001" text-anchor="middle" font-size="11" font-weight="400" fill="var(--_text-sec)" dy="3.8499999999999996">1. 목록 화면 출력 &amp; 선택 ID 수집</text>
+</g>
+<g class="edge-label" data-from="App" data-to="M2" data-label="2. 선택된 ID 중 무작위 1개 추첨">
+  <rect x="245.88349999999997" y="119.9" width="167.33800000000005" height="30.3" rx="2" ry="2" fill="var(--bg)" stroke="var(--_inner-stroke)" stroke-width="1" />
+  <text x="329.5525" y="135.05" text-anchor="middle" font-size="11" font-weight="400" fill="var(--_text-sec)" dy="3.8499999999999996">2. 선택된 ID 중 무작위 1개 추첨</text>
+</g>
+<g class="edge-label" data-from="App" data-to="M3" data-label="3. 당첨 메뉴 기반 연출 100% 재생">
+  <rect x="439.5265" y="119.9" width="176.842" height="30.3" rx="2" ry="2" fill="var(--bg)" stroke="var(--_inner-stroke)" stroke-width="1" />
+  <text x="527.9475" y="135.05" text-anchor="middle" font-size="11" font-weight="400" fill="var(--_text-sec)" dy="3.8499999999999996">3. 당첨 메뉴 기반 연출 100% 재생</text>
+</g>
+<g class="edge-label" data-from="App" data-to="M4" data-label="4. 최종 카드 출력 &amp; PNG 다운로드">
+  <rect x="630.2235" y="95.9" width="182.782" height="30.3" rx="2" ry="2" fill="var(--bg)" stroke="var(--_inner-stroke)" stroke-width="1" />
+  <text x="721.6144999999999" y="111.05000000000001" text-anchor="middle" font-size="11" font-weight="400" fill="var(--_text-sec)" dy="3.8499999999999996">4. 최종 카드 출력 &amp; PNG 다운로드</text>
+</g>
+<g class="node" data-id="App" data-label="app.py (중앙 통제 / GameManager)" data-shape="rectangle">
+  <rect x="304.98099999999994" y="40" width="247.94799999999998" height="36.900000000000006" rx="0" ry="0" fill="var(--_node-fill)" stroke="var(--_node-stroke)" stroke-width="0.75" />
+  <text x="428.9549999999999" y="58.45" text-anchor="middle" font-size="13" font-weight="500" fill="var(--_text)" dy="4.55">app.py (중앙 통제 / GameManager)</text>
+</g>
+<g class="node" data-id="M1" data-label="modules/menu_list.py" data-shape="rectangle">
+  <rect x="40" y="181.2" width="167.179" height="36.900000000000006" rx="0" ry="0" fill="var(--_node-fill)" stroke="var(--_node-stroke)" stroke-width="0.75" />
+  <text x="123.5895" y="199.64999999999998" text-anchor="middle" font-size="13" font-weight="500" fill="var(--_text)" dy="4.55">modules/menu_list.py</text>
+</g>
+<g class="node" data-id="M2" data-label="modules/draw_engine.py" data-shape="rectangle">
+  <rect x="235.17899999999997" y="181.2" width="189.40899999999996" height="36.900000000000006" rx="0" ry="0" fill="var(--_node-fill)" stroke="var(--_node-stroke)" stroke-width="0.75" />
+  <text x="329.88349999999997" y="199.64999999999998" text-anchor="middle" font-size="13" font-weight="500" fill="var(--_text)" dy="4.55">modules/draw_engine.py</text>
+</g>
+<g class="node" data-id="M3" data-label="modules/effects.py" data-shape="rectangle">
+  <rect x="452.58799999999997" y="181.2" width="150.877" height="36.900000000000006" rx="0" ry="0" fill="var(--_node-fill)" stroke="var(--_node-stroke)" stroke-width="0.75" />
+  <text x="528.0264999999999" y="199.64999999999998" text-anchor="middle" font-size="13" font-weight="500" fill="var(--_text)" dy="4.55">modules/effects.py</text>
+</g>
+<g class="node" data-id="M4" data-label="modules/result_view.py" data-shape="rectangle">
+  <rect x="631.4649999999999" y="181.2" width="180.51699999999997" height="36.900000000000006" rx="0" ry="0" fill="var(--_node-fill)" stroke="var(--_node-stroke)" stroke-width="0.75" />
+  <text x="721.7235" y="199.64999999999998" text-anchor="middle" font-size="13" font-weight="500" fill="var(--_text)" dy="4.55">modules/result_view.py</text>
+</g>
+</svg>
