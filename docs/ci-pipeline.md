@@ -34,7 +34,7 @@ CI(Continuous Integration)는 기여자가 변경을 자주 `main`에 통합하�
 
 ### 기여자
 
-- 작업 전 이슈를 등록한다 (`[버그]`, `[기능]`, `[질문]`)
+- 작업 전 이슈를 등록한다 (`[enhancement]`, `[bug]`, `[documentation]`, `[question]`, `[good first issue]`)
 - 변경을 작은 단위로 커밋하고, 단일 PR 템플릿에서 변경 종류를 표시한다
 - 최신 `main`을 기능 브랜치에 반영하여 충돌을 장기간 방치하지 않는다
 - 기능 브랜치에서 동작을 확인한 뒤 리뷰를 요청한다
@@ -92,7 +92,7 @@ GitHub에서는 `.github/workflows/`의 워크플로 파일로 파이프라인�
 
 | 단계 | 담당 | 내용 |
 |---|---|---|
-| 이슈 | 기능 담당 | `bug-report`, `feature-template`, `qua-report` 중 하나를 사용한다 |
+| 이슈 | 기능 담당 | `enhancement`, `bug`, `documentation`, `question`, `good-first-issue` 중 하나를 사용한다 |
 | 구현 | 기능 담당 | 기능 브랜치에서 구현하고 동작을 확인한다 |
 | PR | 기능 담당 | 단일 PR 템플릿에 종류, 관련 이슈, 테스트 계획을 채운다 |
 | CI | GitHub Actions | 린트, 테스트 등 자동 검사를 수행한다 |

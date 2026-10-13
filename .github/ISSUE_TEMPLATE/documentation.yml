@@ -1,0 +1,25 @@
+name: documentation
+description: 회의록, 안내서, README 등 문서 작업을 등록할 때 사용합니다.
+title: "[documentation]: "
+labels: ["documentation"]
+body:
+  - type: textarea
+    id: target
+    attributes:
+      label: 대상 문서
+      description: 만들거나 고칠 문서와 경로를 적습니다.
+      placeholder: docs/meetings/YYYY-MM-DD.md
+    validations:
+      required: true
+
+  - type: textarea
+    id: details
+    attributes:
+      label: 내용
+      description: 무엇을 왜 문서화하는지 적습니다.
+      placeholder: |
+        짧은 요약:
+
+        포함할 내용:
+    validations:
+      required: true
