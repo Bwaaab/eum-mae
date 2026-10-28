@@ -6,29 +6,29 @@ from models import Food
 Default_image = "assets/images/default.png"
 Root = Path(__file__).resolve().parents[1]
 
-# (id, name). 한식/중식/일식/양식은 주석으로만 구분하고 Food 필드에는 넣지 않는다.
+# 키는 id. 한식/중식/일식/양식은 주석으로만 구분하고 Food 필드에는 넣지 않는다.
 # 지금은 구분당 예시 3개만 둔다. 나머지 메뉴는 별도 이슈에서 채운다.
-Seed: tuple[tuple[str, str], ...] = (
+Seed: dict[str, Food] = {
     # 한식
-    ("bibimbap", "비빔밥"),
-    ("kimchijjigae", "김치찌개"),
-    ("doenjangjjigae", "된장찌개"),
+    "bibimbap": Food("bibimbap", "비빔밥", Default_image),
+    "kimchijjigae": Food("kimchijjigae", "김치찌개", Default_image),
+    "doenjangjjigae": Food("doenjangjjigae", "된장찌개", Default_image),
     # 중식
-    ("jajangmyeon", "짜장면"),
-    ("jjamppong", "짬뽕"),
-    ("tangsuyuk", "탕수육"),
+    "jajangmyeon": Food("jajangmyeon", "짜장면", Default_image),
+    "jjamppong": Food("jjamppong", "짬뽕", Default_image),
+    "tangsuyuk": Food("tangsuyuk", "탕수육", Default_image),
     # 일식
-    ("sushi", "초밥"),
-    ("ramen", "라멘"),
-    ("donkatsu", "돈카츠"),
+    "sushi": Food("sushi", "초밥", Default_image),
+    "ramen": Food("ramen", "라멘", Default_image),
+    "donkatsu": Food("donkatsu", "돈카츠", Default_image),
     # 양식
-    ("steak", "스테이크"),
-    ("pasta", "파스타"),
-    ("pizza", "피자"),
-)
+    "steak": Food("steak", "스테이크", Default_image),
+    "pasta": Food("pasta", "파스타", Default_image),
+    "pizza": Food("pizza", "피자", Default_image),
+}
 
 
-def _existing_image(image_path: str) -> str | None:
+def _existing_image(image_path: str):
     """파일이 있으면 그 경로, 없으면 default.png, 둘 다 없으면 None."""
     candidate = Root / image_path
     if candidate.is_file():
@@ -42,10 +42,7 @@ def _existing_image(image_path: str) -> str | None:
 
 def load_default_foods() -> dict[str, Food]:
     """기본 음식 목록 로드."""
-    foods: dict[str, Food] = {}
-    for food_id, name in Seed:
-        foods[food_id] = Food(food_id, name, Default_image)
-    return foods
+    return dict(Seed)
 
 
 def render_menu(all_foods: list[Food]) -> list[str]:
