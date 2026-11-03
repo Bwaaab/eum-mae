@@ -6,12 +6,13 @@ from enum import Enum
 import time
 from typing import Any, Dict, List, Optional
 import streamlit as st
+import streamlit.components.v1 as components
 
 
 # 1. 단일 이펙트 타입 정의
 class EffectType(str, Enum):
     ROLLING = "rolling"       # 메뉴 추천 슬롯머신 셔플 / 긴장감 연출
-    CONFETTI = "confetti"     # 축하 폭죽 파티클 (#17 구현 예정)
+    CONFETTI = "confetti"     # 축하 폭죽 파티클 (#17)
     GLOW = "glow"             # 카드 반짝임 CSS 효과 (#18 구현 예정)
 
 
@@ -20,7 +21,42 @@ EFFECT_PRESETS: Dict[str, List[Dict[str, Any]]] = {
     "preset_draw": [
         {"type": EffectType.ROLLING, "options": {"duration": 1.5}}
     ],
+    "preset_celebration": [
+        {"type": EffectType.CONFETTI, "options": {}}
+    ],
+    "preset_jackpot": [
+        {"type": EffectType.ROLLING, "options": {"duration": 1.5}},
+        {"type": EffectType.CONFETTI, "options": {}}
+    ],
 }
+
+# 컨페티(축하 폭죽) 인라인 HTML/JS 스크립트
+_CONFETTI_HTML = """
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+<script>
+    // 중앙 1차 폭죽 발사
+    confetti({
+        particleCount: 80,
+        spread: 70,
+        origin: { y: 0.6 }
+    });
+    // 좌우 동시 2차 연타 발사
+    setTimeout(function() {
+        confetti({
+            particleCount: 50,
+            angle: 60,
+            spread: 60,
+            origin: { x: 0.05, y: 0.7 }
+        });
+        confetti({
+            particleCount: 50,
+            angle: 120,
+            spread: 60,
+            origin: { x: 0.95, y: 0.7 }
+        });
+    }, 200);
+</script>
+"""
 
 
 def play_atomic_effect(effect: EffectType, options: Optional[Dict[str, Any]] = None) -> bool:
@@ -58,7 +94,8 @@ def play_atomic_effect(effect: EffectType, options: Optional[Dict[str, Any]] = N
             return True
 
         elif effect == EffectType.CONFETTI:
-            # #17 이슈에서 canvas-confetti 연동 예정
+            # HTML/JS canvas-confetti 파티클 렌더링
+            components.html(_CONFETTI_HTML, height=0, width=0)
             return True
 
         elif effect == EffectType.GLOW:
@@ -91,6 +128,14 @@ def play_effect(target: str, is_preset: bool = False, options: Optional[Dict[str
         return play_atomic_effect(EffectType(target), options)
     except ValueError:
         return False
+
+
+def show_celebration_effect() -> None:
+    """
+    메뉴 추첨 완료 시 호출하는 축하 폭죽(컨페티) 연출 함수 (#17)
+    결과창 모듈 또는 추첨 완료 시점에서 간편하게 호출할 수 있습니다.
+    """
+    play_atomic_effect(EffectType.CONFETTI)
 
 
 def play() -> None:
