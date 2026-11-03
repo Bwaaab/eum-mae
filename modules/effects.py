@@ -30,31 +30,54 @@ EFFECT_PRESETS: Dict[str, List[Dict[str, Any]]] = {
     ],
 }
 
-# 컨페티(축하 폭죽) 인라인 HTML/JS 스크립트
-_CONFETTI_HTML = """
-<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+
+def _build_confetti_html() -> str:
+    """매 호출 시 고유 타임스탬프를 포함하여 부모 창(window.parent)에서 직접 폭죽을 발사하는 HTML 생성"""
+    nonce = time.time()
+    return f"""<!-- confetti-run-{nonce} -->
 <script>
-    // 중앙 1차 폭죽 발사
-    confetti({
-        particleCount: 80,
-        spread: 70,
-        origin: { y: 0.6 }
-    });
-    // 좌우 동시 2차 연타 발사
-    setTimeout(function() {
-        confetti({
-            particleCount: 50,
-            angle: 60,
-            spread: 60,
-            origin: { x: 0.05, y: 0.7 }
-        });
-        confetti({
-            particleCount: 50,
-            angle: 120,
-            spread: 60,
-            origin: { x: 0.95, y: 0.7 }
-        });
-    }, 200);
+(function() {{
+    var pWin = window.parent || window;
+    var pDoc = pWin.document;
+
+    function fire() {{
+        if (!pWin.confetti) return;
+        pWin.confetti({{
+            particleCount: 80,
+            spread: 70,
+            origin: {{ y: 0.6 }}
+        }});
+        setTimeout(function() {{
+            pWin.confetti({{
+                particleCount: 50,
+                angle: 60,
+                spread: 60,
+                origin: {{ x: 0.05, y: 0.7 }}
+            }});
+            pWin.confetti({{
+                particleCount: 50,
+                angle: 120,
+                spread: 60,
+                origin: {{ x: 0.95, y: 0.7 }}
+            }});
+        }}, 200);
+    }}
+
+    if (pWin.confetti) {{
+        fire();
+    }} else {{
+        var existing = pDoc.getElementById('eum-mae-confetti-lib');
+        if (!existing) {{
+            var s = pDoc.createElement('script');
+            s.id = 'eum-mae-confetti-lib';
+            s.src = 'https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js';
+            s.onload = fire;
+            pDoc.head.appendChild(s);
+        }} else {{
+            existing.addEventListener('load', fire);
+        }}
+    }}
+}})();
 </script>
 """
 
@@ -94,8 +117,8 @@ def play_atomic_effect(effect: EffectType, options: Optional[Dict[str, Any]] = N
             return True
 
         elif effect == EffectType.CONFETTI:
-            # HTML/JS canvas-confetti 파티클 렌더링
-            components.html(_CONFETTI_HTML, height=0, width=0)
+            # 부모 창(window.parent)에 직접 canvas-confetti 파티클 발사
+            components.html(_build_confetti_html(), height=1)
             return True
 
         elif effect == EffectType.GLOW:
