@@ -2,6 +2,7 @@
 이펙트 모듈(modules/effects.py) 독립 시각 테스트 플레이그라운드
 실행 명령: py -m streamlit run tests/test_effects_ui.py
 """
+import importlib
 from pathlib import Path
 import sys
 import streamlit as st
@@ -12,6 +13,7 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from modules import effects
+importlib.reload(effects)
 from modules.effects import EffectType, EFFECT_PRESETS
 
 st.set_page_config(page_title="음메 - 이펙트 테스트", page_icon="✨", layout="centered")
