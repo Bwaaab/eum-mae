@@ -1,5 +1,6 @@
 import streamlit as st
 from models import Food
+from modules import effects
 
 def render_result(selected_food: Food) -> None:
     """당첨 결과 표시 및 저장"""
@@ -11,3 +12,5 @@ def render_result(selected_food: Food) -> None:
 
     st.subheader("🎉 오늘의 추천 메뉴!")
     st.markdown(f"### 오늘 드실 메뉴는 **{food_name}** 입니다!")
+
+    effects.show_celebration_effect()
