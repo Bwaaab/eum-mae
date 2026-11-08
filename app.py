@@ -22,15 +22,18 @@ with col_btn:
 
 # [뽑기] 버튼 클릭 시 동작 시퀀스
 if clicked:
-    # 순수 추첨
-    selected_id = draw_engine.draw(selected_ids)
-    selected_food = st.session_state.registry[selected_id]
+    if any(food_id not in st.session_state.registry for food_id in selected_ids):
+        st.error("등록되지 않은 메뉴가 포함되어 있습니다. 메뉴 목록을 다시 확인해주세요.")
+    else:
+        # 순수 추첨
+        selected_id = draw_engine.draw(selected_ids)
+        selected_food = st.session_state.registry[selected_id]
     
-    # 연출 재생
-    effects.play()
+        # 연출 재생
+        effects.play()
     
-    # 당첨 결과 세션에 보관 (이후 다운로드 클릭 시에도 결과 유지)
-    st.session_state.selected = selected_food
+        # 당첨 결과 세션에 보관 (이후 다운로드 클릭 시에도 결과 유지)
+        st.session_state.selected = selected_food
 
 # 결과 출력 (세션에 당첨 데이터가 있으면 항상 표시)
 if st.session_state.selected is not None:
