@@ -96,6 +96,8 @@ def remove_food(registry: dict[str, Food], food_id: str) -> None:
     """Remove one food by id. Missing ids leave the registry unchanged."""
     registry.pop(food_id, None)
     _category_map().pop(food_id, None)
+    if "checked_map" in st.session_state:
+        st.session_state.checked_map.pop(food_id, None)
 
 
 def _render_add_form(registry: dict[str, Food]) -> None:
@@ -126,20 +128,30 @@ def _foods_in_category(all_foods: list[Food], category: str) -> list[Food]:
     return [food for food in all_foods if cats.get(food.id, "한식") == category]
 
 
+def _checked_map() -> dict[str, bool]:
+    """Persistent selection store so hidden categories keep their checks."""
+    if "checked_map" not in st.session_state:
+        st.session_state.checked_map = {}
+    return st.session_state.checked_map
+
+
 def _all_selected(foods: list[Food]) -> bool:
     """True when every food in the list is currently checked."""
-    return bool(foods) and all(st.session_state.get(food.id, False) for food in foods)
+    checked = _checked_map()
+    return bool(foods) and all(checked.get(food.id, False) for food in foods)
 
 
 def _toggle_select_all(foods: list[Food]) -> None:
-    """Toggle all checkboxes for the given foods."""
+    """Toggle only this category's foods; leave other categories unchanged."""
+    checked = _checked_map()
     turn_on = not _all_selected(foods)
     for food in foods:
+        checked[food.id] = turn_on
         st.session_state[food.id] = turn_on
     st.rerun()
 
 
-def _render_food_cell(food: Food, registry) -> bool:
+def _render_food_cell(food: Food, registry) -> None:
     """Render one food in a cell: image, then checkbox and delete on one row."""
     image = _existing_image(food.image_path)
     if image is not None:
@@ -148,38 +160,41 @@ def _render_food_cell(food: Food, registry) -> bool:
         except OSError:
             pass
 
+    checked_map = _checked_map()
+    # Restore widget value from persistent store when this category is shown again
+    if food.id not in st.session_state:
+        st.session_state[food.id] = checked_map.get(food.id, False)
+
     check_col, delete_col = st.columns([4, 1])
     with check_col:
         checked = st.checkbox(food.name, key=food.id)
     with delete_col:
         if isinstance(registry, dict) and st.button("삭제", key=f"delete-{food.id}"):
             remove_food(registry, food.id)
+            checked_map.pop(food.id, None)
             st.rerun()
-    return checked
+
+    checked_map[food.id] = checked
 
 
-def _render_category_pool(foods: list[Food], registry) -> list[str]:
-    """Render foods in two columns and return checked ids."""
+def _render_category_pool(foods: list[Food], registry) -> None:
+    """Render foods in two columns."""
     if not foods:
         st.caption("이 카테고리에 메뉴가 없습니다.")
-        return []
+        return
 
-    selected_ids: list[str] = []
     for i in range(0, len(foods), 2):
         left, right = st.columns(2)
         pair = foods[i : i + 2]
         with left:
-            if _render_food_cell(pair[0], registry):
-                selected_ids.append(pair[0].id)
+            _render_food_cell(pair[0], registry)
         if len(pair) > 1:
             with right:
-                if _render_food_cell(pair[1], registry):
-                    selected_ids.append(pair[1].id)
-    return selected_ids
+                _render_food_cell(pair[1], registry)
 
 
 def render_menu(all_foods: list[Food]) -> list[str]:
-    """Render category tabs and return checked food ids for the open category."""
+    """Render category tabs and return checked food ids across all categories."""
     registry = st.session_state.get("registry")
     if isinstance(registry, dict):
         _render_add_form(registry)
@@ -214,4 +229,11 @@ def render_menu(all_foods: list[Food]) -> list[str]:
 
     open_cat = st.session_state.open_category
     st.subheader(f"{open_cat} 메뉴")
-    return _render_category_pool(_foods_in_category(all_foods, open_cat), registry)
+    _render_category_pool(_foods_in_category(all_foods, open_cat), registry)
+
+    valid_ids = {food.id for food in all_foods}
+    checked_map = _checked_map()
+    for food_id in list(checked_map):
+        if food_id not in valid_ids:
+            checked_map.pop(food_id, None)
+    return [food_id for food_id, on in checked_map.items() if on and food_id in valid_ids]
