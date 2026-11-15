@@ -25,6 +25,9 @@ if clicked:
     if any(food_id not in st.session_state.registry for food_id in selected_ids):
         st.error("등록되지 않은 메뉴가 포함되어 있습니다. 메뉴 목록을 다시 확인해주세요.")
     else:
+        # 세션 초기화
+        st.session_state.selected = None
+
         # 순수 추첨
         selected_id = draw_engine.draw(selected_ids)
         selected_food = st.session_state.registry[selected_id]
