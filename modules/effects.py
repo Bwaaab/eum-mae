@@ -261,14 +261,14 @@ def render_glow_card(
     inject_card_glow_css()
     category_html = f'<div class="eum-mae-glow-category">🏷️ {category}</div>' if category else ""
     desc_text = subtitle or "오늘 드실 가장 맛있는 한 끼! 🐮✨"
-    card_html = f"""
-<div class="eum-mae-glow-card">
-    <div class="eum-mae-glow-badge">{badge_text}</div>
-    <div class="eum-mae-food-name">{food_name}</div>
-    {category_html}
-    <p class="eum-mae-glow-desc">{desc_text}</p>
-</div>
-"""
+    card_html = (
+        f'<div class="eum-mae-glow-card">'
+        f'<div class="eum-mae-glow-badge">{badge_text}</div>'
+        f'<div class="eum-mae-food-name">{food_name}</div>'
+        f'{category_html}'
+        f'<p class="eum-mae-glow-desc">{desc_text}</p>'
+        f'</div>'
+    )
     st.markdown(card_html, unsafe_allow_html=True)
 
 
