@@ -126,6 +126,19 @@ def _foods_in_category(all_foods: list[Food], category: str) -> list[Food]:
     return [food for food in all_foods if cats.get(food.id, "한식") == category]
 
 
+def _all_selected(foods: list[Food]) -> bool:
+    """True when every food in the list is currently checked."""
+    return bool(foods) and all(st.session_state.get(food.id, False) for food in foods)
+
+
+def _toggle_select_all(foods: list[Food]) -> None:
+    """Toggle all checkboxes for the given foods."""
+    turn_on = not _all_selected(foods)
+    for food in foods:
+        st.session_state[food.id] = turn_on
+    st.rerun()
+
+
 def _render_food_cell(food: Food, registry) -> bool:
     """Render one food in a cell: image, then checkbox and delete on one row."""
     image = _existing_image(food.image_path)
@@ -191,6 +204,13 @@ def render_menu(all_foods: list[Food]) -> list[str]:
             if st.button(label, key=f"open-{category}", use_container_width=True):
                 st.session_state.open_category = category
                 st.rerun()
+            foods = _foods_in_category(all_foods, category)
+            all_on = _all_selected(foods)
+            toggle_label = (
+                f"전체 해제 ({len(foods)})" if all_on else f"전체 선택 ({len(foods)})"
+            )
+            if st.button(toggle_label, key=f"all-{category}", use_container_width=True):
+                _toggle_select_all(foods)
 
     open_cat = st.session_state.open_category
     st.subheader(f"{open_cat} 메뉴")
