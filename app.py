@@ -20,11 +20,16 @@ col_empty, col_btn = st.columns([3, 1])
 with col_btn:
     clicked = st.button("🎲 오늘의 메뉴 뽑기!", disabled=(len(selected_ids) == 0), use_container_width=True)
 
+result_area = st.empty()
+
 # [뽑기] 버튼 클릭 시 동작 시퀀스
 if clicked:
     if any(food_id not in st.session_state.registry for food_id in selected_ids):
         st.error("등록되지 않은 메뉴가 포함되어 있습니다. 메뉴 목록을 다시 확인해주세요.")
     else:
+        # 세션 초기화
+        st.session_state.selected = None
+
         # 순수 추첨
         selected_id = draw_engine.draw(selected_ids)
         selected_food = st.session_state.registry[selected_id]
@@ -37,4 +42,5 @@ if clicked:
 
 # 결과 출력 (세션에 당첨 데이터가 있으면 항상 표시)
 if st.session_state.selected is not None:
-    result_view.render_result(st.session_state.selected)
+    with result_area.container():
+        result_view.render_result(st.session_state.selected)
