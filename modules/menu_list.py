@@ -9,7 +9,7 @@ from models import Food
 
 DEFAULT_IMAGE = "assets/images/default.png"
 ROOT = Path(__file__).resolve().parents[1]
-SEED_CSV = ROOT / "docs" / "default_foods.csv"
+SEED_CSV = ROOT / "data" / "default_foods.csv"
 DEFAULT_IMAGE_PATH = (ROOT / DEFAULT_IMAGE).resolve()
 ALLOWED_EXT = {".png", ".jpg", ".jpeg"}
 
@@ -25,7 +25,7 @@ def _existing_image(image_path: str) -> str | None:
 
 
 def load_default_foods() -> dict[str, Food]:
-    """Load default foods from docs/default_foods.csv as id -> Food."""
+    """Load default foods from data/default_foods.csv as id -> Food."""
     foods: dict[str, Food] = {}
     with SEED_CSV.open(encoding="utf-8-sig", newline="") as file:
         for row in csv.DictReader(file):
