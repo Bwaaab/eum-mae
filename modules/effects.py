@@ -26,7 +26,7 @@ class EffectType(str, Enum):
 # 2. 조합형 세트(프리셋) 정의
 EFFECT_PRESETS: Dict[str, List[Dict[str, Any]]] = {
     "preset_draw": [
-        {"type": EffectType.ROLLING, "options": {"duration": 1.5, "fullscreen": True}},
+        {"type": EffectType.ROLLING, "options": {"duration": 0.8, "fullscreen": True}},
         {"type": EffectType.COW_ANIMATION, "options": {"state": "open", "fullscreen": True, "duration": 2.3}},
     ],
     "preset_celebration": [
@@ -34,7 +34,7 @@ EFFECT_PRESETS: Dict[str, List[Dict[str, Any]]] = {
         {"type": EffectType.CONFETTI, "options": {}}
     ],
     "preset_jackpot": [
-        {"type": EffectType.ROLLING, "options": {"duration": 1.5, "fullscreen": True}},
+        {"type": EffectType.ROLLING, "options": {"duration": 0.8, "fullscreen": True}},
         {"type": EffectType.COW_ANIMATION, "options": {"state": "open", "fullscreen": True, "duration": 2.3}},
         {"type": EffectType.GLOW, "options": {}},
         {"type": EffectType.CONFETTI, "options": {}}
