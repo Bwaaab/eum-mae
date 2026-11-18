@@ -33,11 +33,26 @@ with col1:
         options=[e.value for e in EffectType],
         format_func=lambda x: f"{x.upper()} ({x})"
     )
+    duration_slider = 1.5
+    fullscreen_mode = False
+    cow_state = "open"
+    cow_size = 210
+    card_title = "🎉 오늘의 추천 메뉴! ✨"
+
     if selected_atomic == EffectType.ROLLING.value:
         duration_slider = st.slider("재생 시간 (초)", min_value=0.5, max_value=4.0, value=1.5, step=0.1)
+        fullscreen_mode = st.checkbox("풀스크린 씬 모드", value=True)
     elif selected_atomic == EffectType.GLOW.value:
         test_food_name = st.text_input("테스트 음식명", value="황금 바삭 치킨 🍗")
         test_category = st.text_input("테스트 카테고리", value="야식/치킨")
+    elif selected_atomic == EffectType.COW_ANIMATION.value:
+        cow_state = st.selectbox("젖소 상태", options=["idle", "rolling", "open"], index=2)
+        cow_size = st.slider("캐릭터 크기 (px)", min_value=140, max_value=280, value=210, step=10)
+        fullscreen_mode = st.checkbox("풀스크린 씬 모드", value=False)
+        if fullscreen_mode:
+            duration_slider = st.slider("씬 유지 시간 (초)", min_value=0.8, max_value=4.0, value=2.3, step=0.1)
+        if cow_state == "open":
+            card_title = st.text_input("입에서 나오는 카드 문구", value="🎉 오늘의 추천 메뉴! ✨")
     else:
         st.caption("폭죽(컨페티) 파티클이 전체 화면에 발사됩니다.")
 
@@ -50,11 +65,21 @@ if trigger_atomic:
     opts = {}
     if selected_atomic == EffectType.ROLLING.value:
         opts["duration"] = duration_slider
-        st.info(f"실행 중: `{selected_atomic}` ({duration_slider}초)")
+        opts["fullscreen"] = fullscreen_mode
+        st.info(f"실행 중: `{selected_atomic}` ({duration_slider}초, fullscreen={fullscreen_mode})")
     elif selected_atomic == EffectType.GLOW.value:
         opts["food_name"] = test_food_name
         opts["category"] = test_category
         st.info(f"실행 중: `{selected_atomic}` (메뉴: {test_food_name})")
+    elif selected_atomic == EffectType.COW_ANIMATION.value:
+        opts = {
+            "state": cow_state,
+            "size": cow_size,
+            "fullscreen": fullscreen_mode,
+            "duration": duration_slider,
+            "card_title": card_title,
+        }
+        st.info(f"실행 중: `{selected_atomic}` (state={cow_state}, fullscreen={fullscreen_mode})")
     else:
         st.info(f"실행 중: `{selected_atomic}`")
 

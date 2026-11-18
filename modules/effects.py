@@ -2,31 +2,40 @@
 이펙트 및 시각 연출 모듈 (modules/effects.py)
 기능적 비즈니스 로직에 영향을 주지 않으며, 독립적으로 시각 연출을 렌더링합니다.
 """
+import base64
 from enum import Enum
+from functools import lru_cache
+from pathlib import Path
 import time
 from typing import Any, Dict, List, Optional
 import streamlit as st
 import streamlit.components.v1 as components
 
+ROOT = Path(__file__).resolve().parents[1]
+COW_ASSETS_DIR = ROOT / "assets" / "images"
+
 
 # 1. 단일 이펙트 타입 정의
 class EffectType(str, Enum):
-    ROLLING = "rolling"       # 메뉴 추천 슬롯머신 셔플 / 긴장감 연출
-    CONFETTI = "confetti"     # 축하 폭죽 파티클 (#17)
-    GLOW = "glow"             # 카드 반짝임 및 등장 CSS 효과 (#18)
+    ROLLING = "rolling"               # 메뉴 추천 슬롯머신 셔플 / 긴장감 연출
+    CONFETTI = "confetti"             # 축하 폭죽 파티클 (#17)
+    GLOW = "glow"                     # 카드 반짝임 및 등장 CSS 효과 (#18)
+    COW_ANIMATION = "cow_animation"   # 젖소 캐릭터 인터랙션 및 입에서 카드 등장 연출 (#71)
 
 
 # 2. 조합형 세트(프리셋) 정의
 EFFECT_PRESETS: Dict[str, List[Dict[str, Any]]] = {
     "preset_draw": [
-        {"type": EffectType.ROLLING, "options": {"duration": 1.5}}
+        {"type": EffectType.ROLLING, "options": {"duration": 1.5, "fullscreen": True}},
+        {"type": EffectType.COW_ANIMATION, "options": {"state": "open", "fullscreen": True, "duration": 2.3}},
     ],
     "preset_celebration": [
         {"type": EffectType.GLOW, "options": {}},
         {"type": EffectType.CONFETTI, "options": {}}
     ],
     "preset_jackpot": [
-        {"type": EffectType.ROLLING, "options": {"duration": 1.5}},
+        {"type": EffectType.ROLLING, "options": {"duration": 1.5, "fullscreen": True}},
+        {"type": EffectType.COW_ANIMATION, "options": {"state": "open", "fullscreen": True, "duration": 2.3}},
         {"type": EffectType.GLOW, "options": {}},
         {"type": EffectType.CONFETTI, "options": {}}
     ],
@@ -131,6 +140,302 @@ _CARD_GLOW_CSS = """<style>
 """
 
 
+_COW_SCENE_CSS = """<style>
+@keyframes eumMaeFadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+@keyframes eumMaeEmojiBounce {
+    0%, 100% { transform: scale(1) translateY(0); }
+    50% { transform: scale(1.16) translateY(-6px); }
+}
+@keyframes cowBreathe {
+    0%, 100% { transform: translateY(0) scale(1); }
+    50% { transform: translateY(-5px) scale(1.015); }
+}
+@keyframes cowShake {
+    0%, 100% { transform: translate(0, 0) rotate(0deg); }
+    20% { transform: translate(-4px, -2px) rotate(-2deg); }
+    40% { transform: translate(4px, 1px) rotate(2deg); }
+    60% { transform: translate(-3px, 2px) rotate(-1.5deg); }
+    80% { transform: translate(3px, -1px) rotate(1.5deg); }
+}
+@keyframes cowPopOpen {
+    0% { transform: scale(0.52) translateY(18px); opacity: 0.2; }
+    12% { opacity: 1; }
+    48% { transform: scale(1.22) translateY(0); }
+    54% { transform: scale(1.30) translateY(-6px); }
+    66% { transform: scale(1.18) translateY(0); }
+    100% { transform: scale(1.18) translateY(0); }
+}
+@keyframes cowEyeBlinkOpen {
+    0%, 88%, 100% { opacity: 1; }
+    92%, 96% { opacity: 0; }
+}
+@keyframes cowEyeBlinkClose {
+    0%, 88%, 100% { opacity: 0; }
+    92%, 96% { opacity: 1; }
+}
+@keyframes cowMouthClosedPhase {
+    0%, 50% { opacity: 1; }
+    53%, 100% { opacity: 0; }
+}
+@keyframes cowMouthOpenPhase {
+    0%, 50% { opacity: 0; }
+    53%, 100% { opacity: 1; }
+}
+@keyframes cardEmergeFromMouth {
+    0%, 52% {
+        opacity: 0;
+        transform: translate(-50%, -45%) scale(0.05);
+    }
+    66% {
+        opacity: 1;
+        transform: translate(-50%, 15%) scale(0.7);
+    }
+    84% {
+        opacity: 1;
+        transform: translate(-50%, 58%) scale(1.14);
+    }
+    100% {
+        opacity: 1;
+        transform: translate(-50%, 60%) scale(1.16);
+    }
+}
+.eum-mae-scene-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 999999;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: rgba(17, 19, 28, 0.88);
+    backdrop-filter: blur(10px);
+    animation: eumMaeFadeIn 0.2s ease-out;
+    padding: 24px;
+    box-sizing: border-box;
+}
+.eum-mae-rolling-card {
+    background: linear-gradient(135deg, rgba(38, 41, 56, 0.96), rgba(25, 27, 38, 0.98));
+    border: 2.5px solid rgba(255, 180, 0, 0.85);
+    border-radius: 24px;
+    padding: 36px 44px;
+    text-align: center;
+    box-shadow: 0 0 36px rgba(255, 180, 0, 0.35);
+    max-width: 420px;
+    width: 90%;
+}
+.eum-mae-rolling-emoji {
+    font-size: 3.6rem;
+    line-height: 1.2;
+    animation: eumMaeEmojiBounce 0.24s infinite ease-in-out;
+}
+.eum-mae-rolling-text {
+    margin-top: 14px;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #FFD166;
+    letter-spacing: -0.3px;
+}
+.eum-mae-cow-inline {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin: 12px auto;
+}
+.eum-mae-cow-speech {
+    background: #FFFFFF;
+    color: #222222;
+    font-weight: 700;
+    font-size: 1rem;
+    padding: 8px 18px;
+    border-radius: 999px;
+    margin-bottom: 10px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.22);
+    border: 2px solid rgba(255, 180, 0, 0.8);
+}
+.eum-mae-cow-stage {
+    position: relative;
+    margin: 0 auto;
+}
+.eum-mae-cow-stage.is-idle {
+    animation: cowBreathe 2.8s infinite ease-in-out;
+}
+.eum-mae-cow-stage.is-rolling {
+    animation: cowShake 0.32s infinite ease-in-out;
+}
+.eum-mae-cow-stage.is-open {
+    animation: cowPopOpen 2.2s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+.eum-mae-cow-layer {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    pointer-events: none;
+    user-select: none;
+}
+.eum-mae-eye-open {
+    animation: cowEyeBlinkOpen 3.6s infinite;
+}
+.eum-mae-eye-close {
+    opacity: 0;
+    animation: cowEyeBlinkClose 3.6s infinite;
+}
+.eum-mae-mouth-preopen {
+    animation: cowMouthClosedPhase 2.2s forwards;
+}
+.eum-mae-mouth-open-delay {
+    opacity: 0;
+    animation: cowMouthOpenPhase 2.2s forwards;
+}
+.eum-mae-emerge-card {
+    position: absolute;
+    top: 62%;
+    left: 50%;
+    z-index: 20;
+    min-width: 220px;
+    padding: 14px 22px;
+    border-radius: 16px;
+    background: linear-gradient(135deg, #FFF7E0 0%, #FFFFFF 100%);
+    border: 2.5px solid #FFB400;
+    box-shadow: 0 12px 32px rgba(255, 180, 0, 0.55), 0 0 24px rgba(255, 215, 0, 0.45);
+    text-align: center;
+    color: #262730;
+    animation: cardEmergeFromMouth 2.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+.eum-mae-emerge-badge {
+    display: inline-block;
+    background: linear-gradient(90deg, #FF6B6B, #FFA07A);
+    color: #FFFFFF;
+    font-size: 0.78rem;
+    font-weight: 700;
+    padding: 3px 12px;
+    border-radius: 999px;
+    margin-bottom: 6px;
+}
+.eum-mae-emerge-title {
+    font-size: 1.15rem;
+    font-weight: 800;
+    color: #FF4B4B;
+    word-break: keep-all;
+}
+</style>"""
+
+
+@lru_cache(maxsize=8)
+def _load_cow_asset_b64(filename: str) -> str:
+    """assets/images 내 젖소 파츠 PNG 파일을 Base64 data URI로 캐싱 로드합니다."""
+    asset_path = COW_ASSETS_DIR / filename
+    raw_bytes = asset_path.read_bytes()
+    encoded = base64.b64encode(raw_bytes).decode("ascii")
+    return f"data:image/png;base64,{encoded}"
+
+
+def _build_fullscreen_rolling_html(emoji: str, text: str) -> str:
+    """풀스크린 중앙 롤링 씬 HTML 생성"""
+    return (
+        f'{_COW_SCENE_CSS}'
+        f'<div class="eum-mae-scene-overlay">'
+        f'<div class="eum-mae-rolling-card">'
+        f'<div class="eum-mae-rolling-emoji">{emoji}</div>'
+        f'<div class="eum-mae-rolling-text">{text}</div>'
+        f'</div>'
+        f'</div>'
+    )
+
+
+def _build_cow_character_html(
+    state: str = "idle",
+    size: int = 200,
+    speech: Optional[str] = None,
+    fullscreen: bool = False,
+    card_title: str = "🎉 오늘의 추천 메뉴! ✨",
+    show_emerge_card: bool = True,
+) -> str:
+    """
+    상태(idle / rolling / open)에 맞는 젖소 파츠 레이어링 HTML을 생성합니다.
+    Markdown 코드 블록 오인 방지를 위해 들여쓰기/빈 줄 없이 단일 연결 문자열로 생성합니다.
+    """
+    face_uri = _load_cow_asset_b64("cow_face.png")
+    eye_uri = _load_cow_asset_b64("cow_eye.png")
+    close_eye_uri = _load_cow_asset_b64("cow_close_eye.png")
+    mouth_uri = _load_cow_asset_b64("cow_mouth.png")
+    open_mouth_uri = _load_cow_asset_b64("cow_open_mouth.png")
+
+    normalized_state = state if state in {"idle", "rolling", "open"} else "idle"
+    stage_cls = f"eum-mae-cow-stage is-{normalized_state}"
+
+    if normalized_state == "idle":
+        eye_html = (
+            f'<img class="eum-mae-cow-layer eum-mae-eye-open" src="{eye_uri}" alt="cow eye">'
+            f'<img class="eum-mae-cow-layer eum-mae-eye-close" src="{close_eye_uri}" alt="cow closed eye">'
+        )
+        mouth_html = f'<img class="eum-mae-cow-layer" src="{mouth_uri}" alt="cow mouth">'
+        emerge_html = ""
+        default_speech = "오늘 뭐 먹지? 음메~ 🐮"
+    elif normalized_state == "rolling":
+        eye_html = f'<img class="eum-mae-cow-layer" src="{eye_uri}" alt="cow eye">'
+        mouth_html = f'<img class="eum-mae-cow-layer" src="{mouth_uri}" alt="cow mouth">'
+        emerge_html = ""
+        default_speech = "두근두근... 고르는 중! 🎲"
+    else:
+        eye_html = f'<img class="eum-mae-cow-layer" src="{eye_uri}" alt="cow eye">'
+        mouth_html = (
+            f'<img class="eum-mae-cow-layer eum-mae-mouth-preopen" src="{mouth_uri}" alt="cow mouth">'
+            f'<img class="eum-mae-cow-layer eum-mae-mouth-open-delay" src="{open_mouth_uri}" alt="cow open mouth">'
+        )
+        emerge_html = (
+            f'<div class="eum-mae-emerge-card">'
+            f'<div class="eum-mae-emerge-badge">🐮 음메 추천!</div>'
+            f'<div class="eum-mae-emerge-title">{card_title}</div>'
+            f'</div>'
+        ) if show_emerge_card else ""
+        default_speech = "음메~! 맛있는 메뉴 나왔다! ✨"
+
+    speech_text = speech if speech is not None else default_speech
+    speech_html = f'<div class="eum-mae-cow-speech">{speech_text}</div>' if speech_text else ""
+    wrapper_cls = "eum-mae-scene-overlay" if fullscreen else "eum-mae-cow-inline"
+
+    return (
+        f'{_COW_SCENE_CSS}'
+        f'<div class="{wrapper_cls}">'
+        f'{speech_html}'
+        f'<div class="{stage_cls}" style="width: {size}px; height: {size}px;">'
+        f'<img class="eum-mae-cow-layer" src="{face_uri}" alt="cow face">'
+        f'{eye_html}'
+        f'{mouth_html}'
+        f'{emerge_html}'
+        f'</div>'
+        f'</div>'
+    )
+
+
+def render_cow_character(
+    state: str = "idle",
+    size: int = 200,
+    speech: Optional[str] = None,
+    fullscreen: bool = False,
+    card_title: str = "🎉 오늘의 추천 메뉴! ✨",
+    show_emerge_card: bool = True,
+    target: Optional[Any] = None,
+) -> None:
+    """젖소 캐릭터 인터랙션 애니메이션을 지정된 컨테이너 또는 현재 위치에 렌더링합니다 (#71)."""
+    html = _build_cow_character_html(
+        state=state,
+        size=size,
+        speech=speech,
+        fullscreen=fullscreen,
+        card_title=card_title,
+        show_emerge_card=show_emerge_card,
+    )
+    renderer = target if target is not None else st
+    renderer.markdown(html, unsafe_allow_html=True)
+
+
 def _build_confetti_html() -> str:
     """매 호출 시 고유 타임스탬프를 포함하여 부모 창(window.parent)에서 직접 폭죽을 발사하는 HTML 생성"""
     nonce = time.time()
@@ -190,6 +495,8 @@ def play_atomic_effect(effect: EffectType, options: Optional[Dict[str, Any]] = N
     try:
         if effect == EffectType.ROLLING:
             duration = options.get("duration", 1.5)
+            fullscreen = options.get("fullscreen", False)
+            keep_placeholder = options.get("_keep_placeholder", False)
             # Streamlit empty placeholder를 활용한 슬롯머신 셔플 연출
             food_emojis = ["🍕", "🍔", "🍜", "🍣", "🍱", "🥘", "🍛", "🥩", "🥗", "🍲"]
             loading_texts = [
@@ -198,22 +505,64 @@ def play_atomic_effect(effect: EffectType, options: Optional[Dict[str, Any]] = N
                 "✨ 맛있는 선택을 탐색하는 중..."
             ]
 
-            slot_placeholder = st.empty()
+            slot_placeholder = options.get("_placeholder") or st.empty()
             start_time = time.time()
             idx = 0
 
             while time.time() - start_time < duration:
                 emoji = food_emojis[idx % len(food_emojis)]
                 text = loading_texts[(idx // 3) % len(loading_texts)]
-                slot_placeholder.markdown(
-                    f"<h3 style='text-align: center; color: #FF4B4B;'>{emoji} {text}</h3>",
-                    unsafe_allow_html=True
-                )
+                if fullscreen:
+                    slot_placeholder.markdown(
+                        _build_fullscreen_rolling_html(emoji, text),
+                        unsafe_allow_html=True,
+                    )
+                else:
+                    slot_placeholder.markdown(
+                        f"<h3 style='text-align: center; color: #FF4B4B;'>{emoji} {text}</h3>",
+                        unsafe_allow_html=True
+                    )
                 time.sleep(0.12)
                 idx += 1
 
-            # 연출 종료 후 placeholder 정리
-            slot_placeholder.empty()
+            # 연출 종료 후 placeholder 정리 (프리셋에서 다음 씬과 공유 중이면 유지)
+            if not keep_placeholder:
+                slot_placeholder.empty()
+            return True
+
+        elif effect == EffectType.COW_ANIMATION:
+            state = options.get("state", "idle")
+            size = options.get("size", 210)
+            speech = options.get("speech")
+            fullscreen = options.get("fullscreen", False)
+            card_title = options.get("card_title", "🎉 오늘의 추천 메뉴! ✨")
+            show_emerge_card = options.get("show_emerge_card", True)
+            duration = options.get("duration", 2.3)
+            keep_placeholder = options.get("_keep_placeholder", False)
+
+            if fullscreen:
+                scene_placeholder = options.get("_placeholder") or st.empty()
+                render_cow_character(
+                    state=state,
+                    size=size,
+                    speech=speech,
+                    fullscreen=True,
+                    card_title=card_title,
+                    show_emerge_card=show_emerge_card,
+                    target=scene_placeholder,
+                )
+                time.sleep(duration)
+                if not keep_placeholder:
+                    scene_placeholder.empty()
+            else:
+                render_cow_character(
+                    state=state,
+                    size=size,
+                    speech=speech,
+                    fullscreen=False,
+                    card_title=card_title,
+                    show_emerge_card=show_emerge_card,
+                )
             return True
 
         elif effect == EffectType.CONFETTI:
@@ -276,11 +625,25 @@ def play_preset(preset_name: str, options: Optional[Dict[str, Any]] = None) -> b
     """[세트 이펙트] 사전 정의된 연출 파이프라인을 순차 실행합니다."""
     if preset_name not in EFFECT_PRESETS:
         return False
-    for step in EFFECT_PRESETS[preset_name]:
-        step_opts = step.get("options", {}).copy()
-        if options:
-            step_opts.update(options)
-        play_atomic_effect(step["type"], step_opts)
+
+    steps = EFFECT_PRESETS[preset_name]
+    has_fullscreen_scene = any(
+        step.get("options", {}).get("fullscreen", False) for step in steps
+    )
+    shared_placeholder = st.empty() if has_fullscreen_scene else None
+
+    try:
+        for step in steps:
+            step_opts = step.get("options", {}).copy()
+            if options:
+                step_opts.update(options)
+            if shared_placeholder is not None and step_opts.get("fullscreen", False):
+                step_opts["_placeholder"] = shared_placeholder
+                step_opts["_keep_placeholder"] = True
+            play_atomic_effect(step["type"], step_opts)
+    finally:
+        if shared_placeholder is not None:
+            shared_placeholder.empty()
     return True
 
 
