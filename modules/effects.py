@@ -161,12 +161,12 @@ _COW_SCENE_CSS = """<style>
     80% { transform: translate(3px, -1px) rotate(1.5deg); }
 }
 @keyframes cowPopOpen {
-    0% { transform: scale(0.52) translateY(18px); opacity: 0.2; }
-    12% { opacity: 1; }
-    48% { transform: scale(1.22) translateY(0); }
-    54% { transform: scale(1.30) translateY(-6px); }
-    66% { transform: scale(1.18) translateY(0); }
-    100% { transform: scale(1.18) translateY(0); }
+    0% { transform: scale(0.55) translateY(18px); opacity: 0.25; }
+    10% { opacity: 1; }
+    50% { transform: scale(1.95) translateY(0); }
+    56% { transform: scale(2.08) translateY(-6px); }
+    68% { transform: scale(1.85) translateY(0); }
+    100% { transform: scale(1.85) translateY(0); }
 }
 @keyframes cowEyeBlinkOpen {
     0%, 88%, 100% { opacity: 1; }
@@ -177,29 +177,29 @@ _COW_SCENE_CSS = """<style>
     92%, 96% { opacity: 1; }
 }
 @keyframes cowMouthClosedPhase {
-    0%, 50% { opacity: 1; }
-    53%, 100% { opacity: 0; }
+    0%, 52% { opacity: 1; }
+    55%, 100% { opacity: 0; }
 }
 @keyframes cowMouthOpenPhase {
-    0%, 50% { opacity: 0; }
-    53%, 100% { opacity: 1; }
+    0%, 52% { opacity: 0; }
+    55%, 100% { opacity: 1; }
 }
 @keyframes cardEmergeFromMouth {
-    0%, 52% {
+    0%, 54% {
         opacity: 0;
-        transform: translate(-50%, -45%) scale(0.05);
+        transform: translate(-50%, -45%) scale(0.04);
     }
-    66% {
+    68% {
         opacity: 1;
-        transform: translate(-50%, 15%) scale(0.7);
+        transform: translate(-50%, 6%) scale(0.42);
     }
-    84% {
+    85% {
         opacity: 1;
-        transform: translate(-50%, 58%) scale(1.14);
+        transform: translate(-50%, 30%) scale(0.66);
     }
     100% {
         opacity: 1;
-        transform: translate(-50%, 60%) scale(1.16);
+        transform: translate(-50%, 32%) scale(0.68);
     }
 }
 .eum-mae-scene-overlay {
@@ -252,7 +252,9 @@ _COW_SCENE_CSS = """<style>
     font-size: 1rem;
     padding: 8px 18px;
     border-radius: 999px;
-    margin-bottom: 10px;
+    margin-bottom: 84px;
+    position: relative;
+    z-index: 30;
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.22);
     border: 2px solid rgba(255, 180, 0, 0.8);
 }
