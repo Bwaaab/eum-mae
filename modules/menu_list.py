@@ -18,16 +18,6 @@ CATEGORIES = ("한식", "중식", "일식", "양식")
 _FOOD_CATEGORY: dict[str, str] = {}
 
 
-def _existing_image(image_path: str) -> str | None:
-    """Return a usable image path, falling back to default.png when needed."""
-    candidate = ROOT / image_path
-    if candidate.is_file():
-        return str(candidate)
-    if image_path != DEFAULT_IMAGE and DEFAULT_IMAGE_PATH.is_file():
-        return str(DEFAULT_IMAGE_PATH)
-    return None
-
-
 def _category_map() -> dict[str, str]:
     """Session category map, seeded from CSV ids."""
     if "food_categories" not in st.session_state:
@@ -152,14 +142,7 @@ def _toggle_select_all(foods: list[Food]) -> None:
 
 
 def _render_food_cell(food: Food, registry) -> None:
-    """Render one food in a cell: image, then checkbox and delete on one row."""
-    image = _existing_image(food.image_path)
-    if image is not None:
-        try:
-            st.image(image, width=120)
-        except OSError:
-            pass
-
+    """Render one food in a cell: checkbox and delete on one row."""
     checked_map = _checked_map()
     # Restore widget value from persistent store when this category is shown again
     if food.id not in st.session_state:
