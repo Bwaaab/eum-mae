@@ -1,4 +1,5 @@
 import csv
+import html
 import shutil
 import uuid
 from pathlib import Path
@@ -54,6 +55,56 @@ div[class*="st-key-delete-"] {
 div[class*="st-key-delete-"] button {
   min-height: 1.9rem !important;
   font-size: 0.8rem !important;
+}
+</style>
+"""
+
+_FLOAT_CSS = """
+<style>
+/* Leave room on the left so the float panel does not cover the list */
+section.main .block-container {
+  padding-left: 9.5rem !important;
+}
+.eum-float-panel {
+  position: fixed;
+  left: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 1000;
+  width: 8rem;
+  max-height: 72vh;
+  overflow-y: auto;
+  padding: 0.55rem 0.45rem;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.96);
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.14);
+}
+.eum-float-title {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #334155;
+  margin: 0 0 0.45rem 0;
+  text-align: center;
+}
+.eum-float-chip {
+  margin: 0 0 0.15rem 0;
+  padding: 0;
+  background: transparent;
+  border: none;
+  color: #334155;
+  font-size: 0.8rem;
+  font-weight: 500;
+  text-align: left;
+  line-height: 1.35;
+  word-break: keep-all;
+}
+.eum-float-empty {
+  font-size: 0.72rem;
+  color: #64748b;
+  text-align: center;
+  line-height: 1.35;
+  padding: 0.35rem 0.15rem;
 }
 </style>
 """
@@ -213,6 +264,33 @@ def _selected_ids(valid_ids: set[str]) -> list[str]:
     return [food_id for food_id, on in checked.items() if on and food_id in valid_ids]
 
 
+def _foods_by_ids(all_foods: list[Food], selected_ids: list[str]) -> list[Food]:
+    """Preserve selection order while mapping ids back to Food objects."""
+    by_id = {food.id: food for food in all_foods}
+    return [by_id[food_id] for food_id in selected_ids if food_id in by_id]
+
+
+def _render_selected_float(selected_foods: list[Food]) -> None:
+    """Fixed left panel listing currently selected menus as float blocks."""
+    if selected_foods:
+        chips = "".join(
+            f'<div class="eum-float-chip">{html.escape(food.name)}</div>'
+            for food in selected_foods
+        )
+        body = (
+            f'<div class="eum-float-title">선택 {len(selected_foods)}</div>{chips}'
+        )
+    else:
+        body = (
+            '<div class="eum-float-title">선택 0</div>'
+            '<div class="eum-float-empty">메뉴를 고르면<br/>여기에 표시됩니다</div>'
+        )
+    st.markdown(
+        f"{_FLOAT_CSS}<div class=\"eum-float-panel\">{body}</div>",
+        unsafe_allow_html=True,
+    )
+
+
 def _render_food_cell(food: Food, registry) -> None:
     """Render one selectable name block (image slot reserved by block size only)."""
     selected = bool(_checked_map().get(food.id, False))
@@ -290,4 +368,6 @@ def render_menu(all_foods: list[Food]) -> list[str]:
     _render_category_pool(_foods_in_category(all_foods, open_cat), registry)
 
     # app.py: selected_ids = render_menu(...); draw uses this list only
-    return _selected_ids(valid_ids)
+    selected_ids = _selected_ids(valid_ids)
+    _render_selected_float(_foods_by_ids(all_foods, selected_ids))
+    return selected_ids
