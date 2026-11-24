@@ -16,6 +16,47 @@ CATEGORIES = ("한식", "중식", "일식", "양식")
 
 # id -> category, filled when defaults load; kept in session for user-added foods
 _FOOD_CATEGORY: dict[str, str] = {}
+POOL_COLUMNS = 4
+
+# Selectable blocks sized for a future thumbnail + name (no list image in this issue)
+_CARD_CSS = """
+<style>
+div[class*="st-key-pick-"] {
+  margin-bottom: 0.2rem;
+}
+div[class*="st-key-pick-"] button {
+  border: 1px solid transparent !important;
+  border-radius: 14px !important;
+  font-weight: 700 !important;
+  color: #ffffff !important;
+  width: 100% !important;
+  min-height: 9.5rem !important;
+  height: 9.5rem !important;
+  padding: 0.75rem 0.6rem !important;
+  white-space: normal !important;
+  line-height: 1.25 !important;
+  display: flex !important;
+  align-items: flex-end !important;
+  justify-content: center !important;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.12) !important;
+}
+div[class*="st-key-pick-"] button[data-testid="baseButton-secondary"],
+div[class*="st-key-pick-"] button[kind="secondary"] {
+  background-color: #2F80ED !important;
+}
+div[class*="st-key-pick-"] button[data-testid="baseButton-primary"],
+div[class*="st-key-pick-"] button[kind="primary"] {
+  background-color: #E53935 !important;
+}
+div[class*="st-key-delete-"] {
+  margin-bottom: 0.7rem;
+}
+div[class*="st-key-delete-"] button {
+  min-height: 1.9rem !important;
+  font-size: 0.8rem !important;
+}
+</style>
+"""
 
 
 def _category_map() -> dict[str, str]:
@@ -87,7 +128,9 @@ def remove_food(registry: dict[str, Food], food_id: str) -> None:
     registry.pop(food_id, None)
     _category_map().pop(food_id, None)
     if "checked_map" in st.session_state:
-        st.session_state.checked_map.pop(food_id, None)
+        checked = dict(st.session_state.checked_map)
+        checked.pop(food_id, None)
+        st.session_state.checked_map = checked
 
 
 def _render_add_form(registry: dict[str, Food]) -> None:
@@ -125,10 +168,29 @@ def _checked_map() -> dict[str, bool]:
     return st.session_state.checked_map
 
 
+def _set_checked_map(checked: dict[str, bool]) -> None:
+    """Replace selection map so Streamlit keeps it across reruns."""
+    st.session_state.checked_map = dict(checked)
+
+
+def _clear_previous_result() -> None:
+    """Drop a prior draw result so celebration does not replay while picking."""
+    if st.session_state.get("selected") is not None:
+        st.session_state.selected = None
+
+
 def _all_selected(foods: list[Food]) -> bool:
     """True when every food in the list is currently checked."""
     checked = _checked_map()
     return bool(foods) and all(checked.get(food.id, False) for food in foods)
+
+
+def _toggle_food(food_id: str) -> None:
+    """Flip one food's selection; leave every other food unchanged."""
+    checked = _checked_map()
+    checked[food_id] = not checked.get(food_id, False)
+    _set_checked_map(checked)
+    _clear_previous_result()
 
 
 def _toggle_select_all(foods: list[Food]) -> None:
@@ -137,52 +199,62 @@ def _toggle_select_all(foods: list[Food]) -> None:
     turn_on = not _all_selected(foods)
     for food in foods:
         checked[food.id] = turn_on
-        st.session_state[food.id] = turn_on
-    st.rerun()
+    _set_checked_map(checked)
+    _clear_previous_result()
+
+
+def _selected_ids(valid_ids: set[str]) -> list[str]:
+    """Checked food ids that still exist in the current registry list."""
+    checked = _checked_map()
+    for food_id in list(checked):
+        if food_id not in valid_ids:
+            checked.pop(food_id, None)
+    _set_checked_map(checked)
+    return [food_id for food_id, on in checked.items() if on and food_id in valid_ids]
 
 
 def _render_food_cell(food: Food, registry) -> None:
-    """Render one food in a cell: checkbox and delete on one row."""
-    checked_map = _checked_map()
-    # Restore widget value from persistent store when this category is shown again
-    if food.id not in st.session_state:
-        st.session_state[food.id] = checked_map.get(food.id, False)
+    """Render one selectable name block (image slot reserved by block size only)."""
+    selected = bool(_checked_map().get(food.id, False))
 
-    check_col, delete_col = st.columns([4, 1])
-    with check_col:
-        checked = st.checkbox(food.name, key=food.id)
-    with delete_col:
-        if isinstance(registry, dict) and st.button("삭제", key=f"delete-{food.id}"):
-            remove_food(registry, food.id)
-            checked_map.pop(food.id, None)
-            st.rerun()
+    if st.button(
+        f"{'✓ ' if selected else ''}{food.name}",
+        key=f"pick-{food.id}",
+        use_container_width=True,
+        type="primary" if selected else "secondary",
+    ):
+        _toggle_food(food.id)
+        st.rerun()
 
-    checked_map[food.id] = checked
+    if isinstance(registry, dict) and st.button(
+        "삭제", key=f"delete-{food.id}", use_container_width=True
+    ):
+        remove_food(registry, food.id)
+        _clear_previous_result()
+        st.rerun()
 
 
 def _render_category_pool(foods: list[Food], registry) -> None:
-    """Render foods in two columns."""
+    """Render foods in a four-column selectable block grid."""
+    st.markdown(_CARD_CSS, unsafe_allow_html=True)
     if not foods:
         st.caption("이 카테고리에 메뉴가 없습니다.")
         return
 
-    for i in range(0, len(foods), 2):
-        left, right = st.columns(2)
-        pair = foods[i : i + 2]
-        with left:
-            _render_food_cell(pair[0], registry)
-        if len(pair) > 1:
-            with right:
-                _render_food_cell(pair[1], registry)
+    for i in range(0, len(foods), POOL_COLUMNS):
+        cols = st.columns(POOL_COLUMNS)
+        chunk = foods[i : i + POOL_COLUMNS]
+        for col, food in zip(cols, chunk):
+            with col:
+                _render_food_cell(food, registry)
 
 
 def render_menu(all_foods: list[Food]) -> list[str]:
-    """Render category tabs and return checked food ids across all categories."""
+    """Show category pick UI and return selected food ids for the draw button."""
     registry = st.session_state.get("registry")
     if isinstance(registry, dict):
         _render_add_form(registry)
 
-    # Sync CSV categories into session once registry exists
     cats = _category_map()
     for food_id, category in _FOOD_CATEGORY.items():
         cats.setdefault(food_id, category)
@@ -190,6 +262,8 @@ def render_menu(all_foods: list[Food]) -> list[str]:
     if not all_foods:
         st.write("메뉴가 없습니다")
         return []
+
+    valid_ids = {food.id for food in all_foods}
 
     if "open_category" not in st.session_state:
         st.session_state.open_category = "한식"
@@ -209,14 +283,11 @@ def render_menu(all_foods: list[Food]) -> list[str]:
             )
             if st.button(toggle_label, key=f"all-{category}", use_container_width=True):
                 _toggle_select_all(foods)
+                st.rerun()
 
     open_cat = st.session_state.open_category
     st.subheader(f"{open_cat} 메뉴")
     _render_category_pool(_foods_in_category(all_foods, open_cat), registry)
 
-    valid_ids = {food.id for food in all_foods}
-    checked_map = _checked_map()
-    for food_id in list(checked_map):
-        if food_id not in valid_ids:
-            checked_map.pop(food_id, None)
-    return [food_id for food_id, on in checked_map.items() if on and food_id in valid_ids]
+    # app.py: selected_ids = render_menu(...); draw uses this list only
+    return _selected_ids(valid_ids)
