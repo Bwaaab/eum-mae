@@ -16,7 +16,8 @@ with st.container(height=450):
     selected_ids = menu_list.render_menu(list(st.session_state.registry.values()))
 
 # [뽑기] 버튼 우측 하단 배치
-col_empty, col_btn = st.columns([3, 1])
+col_summary, col_btn = st.columns([3, 1])
+col_summary.caption(f"선택한 메뉴 {len(selected_ids)}개")
 with col_btn:
     clicked = st.button("🎲 오늘의 메뉴 뽑기!", disabled=(len(selected_ids) == 0), use_container_width=True)
 
