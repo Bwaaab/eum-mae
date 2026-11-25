@@ -119,3 +119,8 @@ category,id,name,image_path
 양식,eggsbenedict,에그베네딕트,assets/images/default.png
 양식,lambchops,램찹,assets/images/default.png
 양식,steakbowl,스테이크볼,assets/images/default.png
+디저트,macaron,마카롱,assets/images/default.png
+디저트,custardpudding,커스터드푸딩,assets/images/default.png
+디저트,cheesecake,치즈케이크,assets/images/default.png
+디저트,strawberryicecream,딸기맛아이스크림,assets/images/default.png
+디저트,vanillashake,바닐라쉐이크,assets/images/default.png
