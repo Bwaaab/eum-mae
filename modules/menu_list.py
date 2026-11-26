@@ -8,46 +8,70 @@ import streamlit as st
 
 from models import Food
 
-DEFAULT_IMAGE = "assets/images/default.png"
+DEFAULT_IMAGE = "data/images/default.png"
 ROOT = Path(__file__).resolve().parents[1]
 SEED_CSV = ROOT / "data" / "default_foods.csv"
 DEFAULT_IMAGE_PATH = (ROOT / DEFAULT_IMAGE).resolve()
 ALLOWED_EXT = {".png", ".jpg", ".jpeg"}
-CATEGORIES = ("한식", "중식", "일식", "양식")
+CATEGORIES = ("한식", "중식", "일식", "양식", "디저트")
 
 # id -> category, filled when defaults load; kept in session for user-added foods
 _FOOD_CATEGORY: dict[str, str] = {}
 POOL_COLUMNS = 4
 
-# Selectable blocks sized for a future thumbnail + name (no list image in this issue)
+# Image fully visible on top; name strip below; ::before extends click hit over the photo
 _CARD_CSS = """
 <style>
+/* Stretch photo wrappers to column width so image matches name strip */
+div[data-testid="stFullScreenFrame"],
+div[data-testid="stFullScreenFrame"] > div,
+div[data-testid="stImage"],
+div[data-testid="stImage"] > div,
+div[data-testid="stImageContainer"] {
+  margin-bottom: 0 !important;
+  width: 100% !important;
+  max-width: 100% !important;
+}
+div[data-testid="stImage"] img {
+  width: 100% !important;
+  max-width: 100% !important;
+  height: 8.5rem !important;
+  object-fit: cover !important;
+  border-radius: 12px 12px 0 0 !important;
+  display: block !important;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.12);
+}
 div[class*="st-key-pick-"] {
-  margin-bottom: 0.2rem;
+  /* Cancel Streamlit gap so the name strip sits flush under the image */
+  margin-top: -1rem !important;
+  margin-bottom: 0.15rem !important;
 }
 div[class*="st-key-pick-"] button {
+  --eum-img-h: 8.5rem;
+  position: relative !important;
   border: 1px solid transparent !important;
-  border-radius: 14px !important;
+  border-radius: 0 0 12px 12px !important;
   font-weight: 700 !important;
   color: #ffffff !important;
   width: 100% !important;
-  min-height: 9.5rem !important;
-  height: 9.5rem !important;
-  padding: 0.75rem 0.6rem !important;
+  min-height: 2.55rem !important;
+  height: 2.55rem !important;
+  padding: 0.45rem !important;
   white-space: normal !important;
   line-height: 1.25 !important;
   display: flex !important;
-  align-items: flex-end !important;
+  align-items: center !important;
   justify-content: center !important;
   box-shadow: 0 2px 8px rgba(15, 23, 42, 0.12) !important;
 }
-div[class*="st-key-pick-"] button[data-testid="baseButton-secondary"],
-div[class*="st-key-pick-"] button[kind="secondary"] {
-  background-color: #2F80ED !important;
-}
-div[class*="st-key-pick-"] button[data-testid="baseButton-primary"],
-div[class*="st-key-pick-"] button[kind="primary"] {
-  background-color: #E53935 !important;
+/* Invisible hit target over the image so the whole card is clickable */
+div[class*="st-key-pick-"] button::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 100%;
+  height: var(--eum-img-h);
 }
 div[class*="st-key-delete-"] {
   margin-bottom: 0.7rem;
@@ -117,6 +141,17 @@ def _category_map() -> dict[str, str]:
     return st.session_state.food_categories
 
 
+def _existing_image(image_path: str) -> str | None:
+    """Return a usable image path, falling back to default.png when needed."""
+    candidate = ROOT / image_path
+    if candidate.is_file():
+        return str(candidate)
+    if image_path != DEFAULT_IMAGE and DEFAULT_IMAGE_PATH.is_file():
+        return str(DEFAULT_IMAGE_PATH)
+    return None
+
+
+
 def load_default_foods() -> dict[str, Food]:
     """Load default foods from data/default_foods.csv as id -> Food."""
     foods: dict[str, Food] = {}
@@ -134,22 +169,13 @@ def load_default_foods() -> dict[str, Food]:
     return foods
 
 
-def add_food(registry: dict[str, Food], name: str, image_path: str, category: str = "한식"):
-    """Add a food with name and photo. Return None and leave registry unchanged on reject."""
+def add_food(registry: dict[str, Food], name: str, image_path: str = "", category: str = "한식"):
+    """Add a food with name and optional photo. Missing photo uses default.png."""
     cleaned = name.strip()
     if not cleaned:
         st.warning("이름을 입력하세요")
         return None
 
-    source = Path(image_path) if image_path else None
-    if source is None or not source.is_file() or source.resolve() == DEFAULT_IMAGE_PATH:
-        st.warning("사진을 넣어 주세요")
-        return None
-
-    ext = source.suffix.lower()
-    if ext not in ALLOWED_EXT:
-        st.warning("png, jpg, jpeg만 추가할 수 있습니다")
-        return None
     if any(food.name == cleaned for food in registry.values()):
         st.warning("같은 이름이 이미 있습니다")
         return None
@@ -158,14 +184,30 @@ def add_food(registry: dict[str, Food], name: str, image_path: str, category: st
     while food_id in registry:
         food_id = uuid.uuid4().hex
 
-    dest_rel = f"assets/images/{food_id}{ext}"
-    dest = ROOT / dest_rel
-    try:
-        dest.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copyfile(source, dest)
-    except OSError:
-        st.warning("사진을 저장하지 못했습니다")
-        return None
+    source = Path(image_path) if image_path else None
+    use_default = (
+        source is None
+        or not source.is_file()
+        or source.resolve() == DEFAULT_IMAGE_PATH
+    )
+    if use_default:
+        if not DEFAULT_IMAGE_PATH.is_file():
+            st.warning("기본 이미지가 없습니다")
+            return None
+        dest_rel = DEFAULT_IMAGE
+    else:
+        ext = source.suffix.lower()
+        if ext not in ALLOWED_EXT:
+            st.warning("png, jpg, jpeg만 추가할 수 있습니다")
+            return None
+        dest_rel = f"data/images/{food_id}{ext}"
+        dest = ROOT / dest_rel
+        try:
+            dest.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copyfile(source, dest)
+        except OSError:
+            st.warning("사진을 저장하지 못했습니다")
+            return None
 
     food = Food(food_id, cleaned, dest_rel)
     registry[food_id] = food
@@ -188,21 +230,23 @@ def _render_add_form(registry: dict[str, Food]) -> None:
     """Render name/photo/category inputs and append a food on submit."""
     name = st.text_input("메뉴 이름", key="new-food-name")
     category = st.selectbox("카테고리", options=list(CATEGORIES), key="new-food-category")
-    uploaded = st.file_uploader("사진", type=["png", "jpg", "jpeg"], key="new-food-image")
+    uploaded = st.file_uploader(
+        "사진 (선택)", type=["png", "jpg", "jpeg"], key="new-food-image"
+    )
     if not st.button("메뉴 추가", key="add-food"):
         return
-    if uploaded is None:
-        st.warning("사진을 넣어 주세요")
-        return
 
-    ext = Path(uploaded.name).suffix.lower()
-    tmp = ROOT / "assets" / "images" / f".upload-{uuid.uuid4().hex}{ext}"
-    try:
-        tmp.parent.mkdir(parents=True, exist_ok=True)
-        tmp.write_bytes(uploaded.getvalue())
-        added = add_food(registry, name, str(tmp), category)
-    finally:
-        tmp.unlink(missing_ok=True)
+    if uploaded is None:
+        added = add_food(registry, name, "", category)
+    else:
+        ext = Path(uploaded.name).suffix.lower()
+        tmp = ROOT / "data" / "images" / f".upload-{uuid.uuid4().hex}{ext}"
+        try:
+            tmp.parent.mkdir(parents=True, exist_ok=True)
+            tmp.write_bytes(uploaded.getvalue())
+            added = add_food(registry, name, str(tmp), category)
+        finally:
+            tmp.unlink(missing_ok=True)
     if added is not None:
         st.rerun()
 
@@ -290,8 +334,27 @@ def _render_selected_float(selected_foods: list[Food]) -> None:
 
 
 def _render_food_cell(food: Food, registry) -> None:
-    """Render one selectable name block (image slot reserved by block size only)."""
+    """Render one block: image top + name bottom; whole block click toggles select."""
     selected = bool(_checked_map().get(food.id, False))
+    strip = "#E53935" if selected else "#2F80ED"
+    st.markdown(
+        f"""
+<style>
+div[class*="st-key-pick-{food.id}"] button {{
+  background-color: {strip} !important;
+  background-image: none !important;
+}}
+</style>
+""",
+        unsafe_allow_html=True,
+    )
+
+    image = _existing_image(food.image_path)
+    if image is not None:
+        try:
+            st.image(image, use_container_width=True)
+        except OSError:
+            pass
 
     if st.button(
         f"{'✓ ' if selected else ''}{food.name}",
@@ -344,7 +407,7 @@ def render_menu(all_foods: list[Food]) -> list[str]:
     if "open_category" not in st.session_state:
         st.session_state.open_category = "한식"
 
-    cat_cols = st.columns(4)
+    cat_cols = st.columns(len(CATEGORIES))
     for col, category in zip(cat_cols, CATEGORIES):
         with col:
             is_open = st.session_state.open_category == category
