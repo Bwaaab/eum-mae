@@ -226,29 +226,68 @@ def remove_food(registry: dict[str, Food], food_id: str) -> None:
         st.session_state.checked_map = checked
 
 
-def _render_add_form(registry: dict[str, Food]) -> None:
-    """Render name/photo/category inputs and append a food on submit."""
-    name = st.text_input("메뉴 이름", key="new-food-name")
-    category = st.selectbox("카테고리", options=list(CATEGORIES), key="new-food-category")
-    uploaded = st.file_uploader(
-        "사진 (선택)", type=["png", "jpg", "jpeg"], key="new-food-image"
+def _submit_new_food(
+    registry: dict[str, Food], name: str, category: str, uploaded
+) -> Food | None:
+    """Add a food from dialog fields. No photo uses the default image."""
+    if uploaded is None:
+        return add_food(registry, name, "", category)
+
+    ext = Path(uploaded.name).suffix.lower()
+    tmp = ROOT / "data" / "images" / f".upload-{uuid.uuid4().hex}{ext}"
+    try:
+        tmp.parent.mkdir(parents=True, exist_ok=True)
+        tmp.write_bytes(uploaded.getvalue())
+        return add_food(registry, name, str(tmp), category)
+    finally:
+        tmp.unlink(missing_ok=True)
+
+
+@st.dialog("메뉴 추가")
+def _add_food_dialog(registry: dict[str, Food]) -> None:
+    """Collect name, category, and an optional photo, then append a food."""
+    nonce = int(st.session_state.get("add_dialog_nonce", 0))
+    name = st.text_input("메뉴 이름", key=f"new-food-name-{nonce}")
+    category = st.selectbox(
+        "카테고리",
+        options=list(CATEGORIES),
+        key=f"new-food-category-{nonce}",
     )
-    if not st.button("메뉴 추가", key="add-food"):
+    uploaded = st.file_uploader(
+        "사진 (선택)",
+        type=["png", "jpg", "jpeg"],
+        key=f"new-food-image-{nonce}",
+    )
+    add_col, cancel_col = st.columns(2)
+    submitted = add_col.button(
+        "추가",
+        key=f"confirm-add-food-{nonce}",
+        type="primary",
+        use_container_width=True,
+    )
+    cancelled = cancel_col.button(
+        "취소",
+        key=f"cancel-add-food-{nonce}",
+        use_container_width=True,
+    )
+    if cancelled:
+        st.rerun()
+    if not submitted:
         return
 
-    if uploaded is None:
-        added = add_food(registry, name, "", category)
-    else:
-        ext = Path(uploaded.name).suffix.lower()
-        tmp = ROOT / "data" / "images" / f".upload-{uuid.uuid4().hex}{ext}"
-        try:
-            tmp.parent.mkdir(parents=True, exist_ok=True)
-            tmp.write_bytes(uploaded.getvalue())
-            added = add_food(registry, name, str(tmp), category)
-        finally:
-            tmp.unlink(missing_ok=True)
-    if added is not None:
-        st.rerun()
+    added = _submit_new_food(registry, name, category, uploaded)
+    if added is None:
+        return
+    st.session_state.open_category = category if category in CATEGORIES else "한식"
+    st.rerun()
+
+
+def _render_add_entry(registry: dict[str, Food]) -> None:
+    """Show an add button. The input form opens in a dialog."""
+    if st.button("메뉴 추가", key="open-add-food"):
+        nonce = int(st.session_state.get("add_dialog_nonce", 0)) + 1
+        st.session_state.add_dialog_nonce = nonce
+        _add_food_dialog(registry)
 
 
 def _foods_in_category(all_foods: list[Food], category: str) -> list[Food]:
@@ -392,7 +431,7 @@ def render_menu(all_foods: list[Food]) -> list[str]:
     """Show category pick UI and return selected food ids for the draw button."""
     registry = st.session_state.get("registry")
     if isinstance(registry, dict):
-        _render_add_form(registry)
+        _render_add_entry(registry)
 
     cats = _category_map()
     for food_id, category in _FOOD_CATEGORY.items():
